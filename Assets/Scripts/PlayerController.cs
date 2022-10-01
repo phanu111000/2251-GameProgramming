@@ -1,91 +1,175 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Component References")] 
+    [SerializeField] private Transform player;
     [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private SpriteRenderer sr;
-    [SerializeField] private float moving;
-    [SerializeField] private float jumping;
+    [SerializeField] private Collider2D playerCollider;
+    [SerializeField] private PlayerAnimatorController animatorController;
 
-    [SerializeField] private Transform groundPoint;
-    [SerializeField] private bool isOnGround;
-    [SerializeField] private LayerMask whatIsGround;
-    [SerializeField] private Animator anim;
-    [SerializeField] private bool canJump;
-    [SerializeField] private Transform playerTransform;
-  
-    private float movingInput;
+    [Header("Player Values")] 
+    [SerializeField] private float movementSpeed = 3f;
+    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private float timeBetweenJumps = 0.1f;
+    [SerializeField] private float coyoteTimeDuration = 0.5f;
 
+    [Header("Ground Checks")] 
+    [SerializeField] private LayerMask groundLayers;
+    [SerializeField] private float extraGroundCheckDistance = 0.5f;
+    
+    // Input Values
+    private float _moveInput;
+    
+    // Boolean flags. Booleans for checking conditions.
+    private bool _isGrounded;
+    private bool _canJump;
+    private bool _canDoubleJump;
+
+    // Private variables
+    private float _coyoteTimeTimer;
+    private float _lastJumpTimer;
+
+    // Stored References
+    private GameManager _gameManager;
+
+    private void Start()
+    {
+        _gameManager = FindObjectOfType<GameManager>();
+    }
     private void Update()
     {
-        Flip();
-
-        GroundCheck();
+        CheckGround();
         CheckCanJump();
-        PlayerAnimation();
+        SetAnimatorParameters();
     }
-        
+    
     private void FixedUpdate()
     {
         Move();
     }
 
-    private void OnMove(InputValue value)
+    private void FindGameManager()
     {
-        movingInput = value.Get<float>();
+        if (_gameManager != null) return;
+
+        _gameManager = FindObjectOfType<GameManager>();
     }
 
-    private void OnJump(InputValue value)
-    {
-        if (canJump)
-        {
-            if (value.isPressed)
-            {
-                rb.AddForce(jumping * transform.up, ForceMode2D.Impulse);
-            }   
-        }
-        
-    }
+    #region Actions
 
     private void Move()
     {
-        rb.velocity = new Vector2(movingInput * moving, rb.velocity.y);
+        rb.velocity = new Vector2(_moveInput * movementSpeed, rb.velocity.y);
     }
 
-    private void Flip()
+    private void FlipPlayerSprite()
     {
-        if (movingInput == -1)
+        player.localScale = _moveInput switch
         {
-            playerTransform.transform.localScale = new Vector3(-1f, 1f, 1f);
-        }
-        else if (movingInput == 1)
+            > 0f => new Vector3(1, 1, 1),
+            < 0f => new Vector3(-1, 1, 1),
+            _ => player.localScale
+        };
+    }
+    
+    private void TryJumping()
+    {
+        if (_lastJumpTimer <= timeBetweenJumps) return; // If the player just jumped or use a jump pad, ignore the first timeBetweenJumps seconds.
+        
+        if (!_canJump) // If the player can't jump, check these conditions. Else jump.
         {
-            playerTransform.transform.localScale = Vector3.one;
+            if (!_canDoubleJump) return; // If the player cannot double jump, return void. (Stop here)
+            _canDoubleJump = false; // Else set double jump to false, then jump.
         }
-    }   
+        AudioManager.instance.PlayerSFX(5);
+        Jump(jumpForce);
+    }
 
-    private void GroundCheck()
+    public void Jump(float force, float additionalTimeWait = 0f)
     {
-        isOnGround = Physics2D.OverlapCircle(groundPoint.position, .2f, whatIsGround);
+        _canJump = false; // Flag bool canJump is here is to prevent double jumping on jump pads since the code is shared.
+        _lastJumpTimer = 0f - additionalTimeWait;
+        rb.velocity = new Vector2(rb.velocity.x, 0f); // Reset the y-force to prevent player stacking up jump momentum.
+        rb.AddForce(force * transform.up, ForceMode2D.Impulse);
+    }
+
+    private void CheckGround()
+    {
+        var playerColliderBounds = playerCollider.bounds;
+        
+        var raycastHit = Physics2D.BoxCast(
+            playerColliderBounds.center, 
+            playerColliderBounds.size, 
+            0f,
+            Vector2.down, 
+            extraGroundCheckDistance, 
+            groundLayers);
+
+        _isGrounded = raycastHit.collider != null;
     }
 
     private void CheckCanJump()
     {
-        if(isOnGround)
+        _lastJumpTimer = Mathf.Min(_lastJumpTimer, timeBetweenJumps) + Time.deltaTime; // Increment the time since the last jump. See line 73.
+
+        if (_isGrounded)
         {
-            canJump = true;
+            _canJump = true;
+            _coyoteTimeTimer = 0f;
+            return;
         }
-        else
-        {
-            canJump = false;
-        }
+
+        _coyoteTimeTimer = Mathf.Min(_coyoteTimeTimer, coyoteTimeDuration) + Time.deltaTime;
+
+        if (_coyoteTimeTimer <= coyoteTimeDuration) return; // If the coyote time timer does not hit the threshold yet, the player can still jump.
+
+        _canJump = false; // If the coyote time timer goes beyond the threshold, the player can no longer jump.
     }
 
-    private void PlayerAnimation()
+    private void SetAnimatorParameters()
     {
-        anim.SetBool("IsOnGround", isOnGround);
-        anim.SetFloat("Speed", Mathf.Abs(rb.velocity.x));
+        animatorController.SetAnimatorParameters(rb.velocity, _isGrounded);
     }
+
+    public void EnableDoubleJump()
+    {
+        _canDoubleJump = true;
+    }
+    
+    public void TakeDamage()
+    {
+        FindGameManager();
+        _gameManager.ProcessPlayerDeath();
+        _gameManager.LiveDeduct();
+    }
+    
+    #endregion
+    
+    #region Input
+    
+    private void OnMove(InputValue value)
+    {
+        AudioManager.instance.PlayerSFX(2);
+        _moveInput = value.Get<float>();
+        
+        FlipPlayerSprite();
+    }
+
+    private void OnJump(InputValue value)
+    {
+        TryJumping();
+        if (!value.isPressed) return;
+    }
+
+    private void OnQuit(InputValue value)
+    {
+        if (!value.isPressed) return;
+        _gameManager.LoadScene(0);
+    }
+
+    #endregion
 
 }
