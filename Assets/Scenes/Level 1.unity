@@ -428,7 +428,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.7378227, y: -1.3200002, z: -10}
+  m_LocalPosition: {x: -1.7402592, y: -1.3200002, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -951,7 +951,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2094049902}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.7378227, y: -1.3200002, z: -10}
+  m_LocalPosition: {x: -1.7402592, y: -1.3200002, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1021,6 +1021,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1326288529, guid: e1e92449807aa324f83143c46a47dfc0, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -7.954605
+      objectReference: {fileID: 0}
     - target: {fileID: 1326288530, guid: e1e92449807aa324f83143c46a47dfc0, type: 3}
       propertyPath: m_text
       value: 'Lives : 3'
@@ -1198,10 +1202,6 @@ PrefabInstance:
     - target: {fileID: 5375392123374251938, guid: 7b07966397cb0af44811ea5e417ff657, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8332141556244720003, guid: 7b07966397cb0af44811ea5e417ff657, type: 3}
-      propertyPath: m_Volume
-      value: 0.51
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7b07966397cb0af44811ea5e417ff657, type: 3}

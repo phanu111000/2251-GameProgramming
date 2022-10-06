@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] public int playerLives = 3;
     [SerializeField] private Transform textDestroy; //to make lives dissappear in main menu
     [SerializeField] private ShowLives showLives;
+
+
 
     private void Awake()
     {
@@ -47,20 +50,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void ProcessPlayerDeath()
+    public IEnumerator ProcessPlayerDeath()
     {
+        yield return new WaitForSeconds(1f);
         LoadScene(GetCurrentBuildIndex());
         UpdatePlayerLives();
     }
 
-    public void LoadNextLevel()
+    public IEnumerator LoadNextLevel()
     {
         var nextSceneIndex = GetCurrentBuildIndex() + 1;
         if (nextSceneIndex == SceneManager.sceneCountInBuildSettings)
         {
             nextSceneIndex = 0;
         }
-        
+        yield return new WaitForSeconds(1f);
         LoadScene(nextSceneIndex);
         UpdatePlayerLives();
     }

@@ -8,10 +8,12 @@ public class Collectibles : MonoBehaviour
     
     private CollectibleType _collectibleType;
     private bool _isRespawnable;
+    private AudioManager _audioManager;
 
     private void Start()
     {
         SetCollectible();
+        _audioManager = FindObjectOfType<AudioManager>();
     }
 
     public CollectibleType GetCollectibleInfoOnContact()
@@ -22,6 +24,7 @@ public class Collectibles : MonoBehaviour
         if (_isRespawnable)
         {
             collectibleSpawner.StartRespawningCountdown();
+            _audioManager.Diamond();
         }
 
         return _collectibleType;

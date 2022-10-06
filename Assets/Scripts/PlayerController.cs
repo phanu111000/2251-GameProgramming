@@ -34,10 +34,12 @@ public class PlayerController : MonoBehaviour
 
     // Stored References
     private GameManager _gameManager;
+    private AudioManager _audioManager;
 
     private void Start()
     {
         _gameManager = FindObjectOfType<GameManager>();
+        _audioManager = FindObjectOfType<AudioManager>();
     }
     private void Update()
     {
@@ -84,7 +86,7 @@ public class PlayerController : MonoBehaviour
             if (!_canDoubleJump) return; // If the player cannot double jump, return void. (Stop here)
             _canDoubleJump = false; // Else set double jump to false, then jump.
         }
-        AudioManager.instance.PlayerSFX(5);
+        _audioManager.PlayerJump();
         Jump(jumpForce);
     }
 
@@ -141,8 +143,9 @@ public class PlayerController : MonoBehaviour
     
     public void TakeDamage()
     {
+        _audioManager.Die();
         FindGameManager();
-        _gameManager.ProcessPlayerDeath();
+        StartCoroutine(_gameManager.ProcessPlayerDeath());
         _gameManager.LiveDeduct();
     }
     
@@ -152,7 +155,7 @@ public class PlayerController : MonoBehaviour
     
     private void OnMove(InputValue value)
     {
-        AudioManager.instance.PlayerSFX(2);
+        _audioManager.PlayerWalk();
         _moveInput = value.Get<float>();
         
         FlipPlayerSprite();

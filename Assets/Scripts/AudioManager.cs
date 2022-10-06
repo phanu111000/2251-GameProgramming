@@ -4,31 +4,35 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    public static AudioManager instance;
+    public AudioSource _jump, _walk, _sprung, _diamond, _win, _die;
 
-    public AudioSource[] soundEffects;
-
-    private void Awake()
+    public void PlayerJump()
     {
-        instance = this;
+        _jump.Play();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public void PlayerWalk()
     {
-        
+        _walk.Play();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void Sprung()
     {
-        
+        _sprung.Play();
     }
 
-    public void PlayerSFX(int soundToPlay)
+    public void Diamond()
     {
-        soundEffects[soundToPlay].Stop();
+        _diamond.Play();
+    }
 
-        soundEffects[soundToPlay].Play();
+    public void Win()
+    {
+        _win.Play();
+    }
+
+    public void Die()
+    {
+        _die.Play();
     }
 }

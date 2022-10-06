@@ -12,9 +12,12 @@ public class CollectibleSpawner : MonoBehaviour
     [Header("Collectible Settings")]
     [SerializeField] private float respawnTime = 4f;
 
+    private AudioManager _audioManager;
+
     private void Start()
     {
         transform.DOMove(tweenEndPoint.position, 3f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutQuart);
+        _audioManager = FindObjectOfType<AudioManager>();
     }
 
     private IEnumerator RespawnCollectible()
@@ -22,6 +25,7 @@ public class CollectibleSpawner : MonoBehaviour
         yield return new WaitForSeconds(respawnTime);
         SetOutlineSpriteActive(false);
         collectibleGameObject.SetActive(true);
+        _audioManager.Diamond();
     }
 
     private void SetOutlineSpriteActive(bool state)
