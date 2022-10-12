@@ -1,31 +1,36 @@
 using System.Collections;
 using UnityEngine;
-using DG.Tweening;
 
 public class CollectibleSpawner : MonoBehaviour
 {
     // This script is to handle the respawning of the collectible as a disabled gameObject cannot run any methods or coroutines on its own.
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private GameObject collectibleGameObject;
-    [SerializeField] private Transform tweenEndPoint;
+    [SerializeField] private AudioPlayer audioPlayer;
+    [SerializeField] private SoAudioClips collectAudioClips;
+    [SerializeField] private SoAudioClips respawnAudioClips;
     
     [Header("Collectible Settings")]
     [SerializeField] private float respawnTime = 4f;
 
-    private AudioManager _audioManager;
+    private PlayerAudioController _playerAudioController;
+
+    private void Awake()
+    {
+        _playerAudioController = GetComponent<PlayerAudioController>();
+    }
 
     private void Start()
     {
-        transform.DOMove(tweenEndPoint.position, 3f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutQuart);
-        _audioManager = FindObjectOfType<AudioManager>();
+        spriteRenderer.enabled = false;
     }
-
+    
     private IEnumerator RespawnCollectible()
     {
         yield return new WaitForSeconds(respawnTime);
         SetOutlineSpriteActive(false);
+        PlayRespawn();
         collectibleGameObject.SetActive(true);
-        _audioManager.Diamond();
     }
 
     private void SetOutlineSpriteActive(bool state)
@@ -41,6 +46,19 @@ public class CollectibleSpawner : MonoBehaviour
     public void StartRespawningCountdown() // This method is to let other script trigger the respawn countdown, and let this script handle the coroutine.
     {
         SetOutlineSpriteActive(true);
+        PlayCollected();
         StartCoroutine(RespawnCollectible());
     }
+    
+    #region Audio
+    private void PlayRespawn()
+    {
+        audioPlayer.PlaySound(respawnAudioClips);
+    }
+
+    private void PlayCollected()
+    {
+        audioPlayer.PlaySound(collectAudioClips);
+    }
+    #endregion
 }
